@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>集趣赏利润管理系统</title>
+<style>
+  :root {
+    --bg: #0f1923;
+    --card: #1a2736;
+    --border: #2a3a4a;
+    --text: #e0e6ed;
+    --text2: #8899aa;
+    --accent: #4fc3f7;
+    --gold: #ffd54f;
+    --purple: #ce93d8;
+    --orange: #ffab40;
+    --green: #69f0ae;
+    --red: #ff5252;
+    --blue: #448aff;
+    --input-bg: #141e2b;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .header {
+    text-align: center;
+    padding: 24px 0 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    outline: none;
+    cursor: text;
+    min-width: 200px;
+  }
+  .header h1:empty::before {
+    content: attr(data-placeholder);
+    background: linear-gradient(135deg, var(--text2), var(--border));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    opacity: 0.5;
+  }
+  .header h1:not(:empty) {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .header .sub {
+    color: var(--text2);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+
+  /* 顶部全局参数 */
+  .global-params {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 24px;
+  }
+  .param-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 24px;
+    text-align: center;
+    min-width: 160px;
+  }
+  .param-card label {
+    display: block;
+    font-size: 12px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .param-card input {
+    width: 100px;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 700;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--accent);
+    padding: 6px 8px;
+    outline: none;
+    transition: border-color 0.2s;
+    -moz-appearance: textfield;
+  }
+  .param-card input::-webkit-outer-spin-button,
+  .param-card input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  .param-card input:focus {
+    border-color: var(--accent);
+  }
+  .param-card .val {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--gold);
+    margin-top: 4px;
+  }
+
+  /* 主体布局 */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .section-header {
+    padding: 12px 18px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .section-header.myth { background: linear-gradient(135deg, #3a1c71, #d76d77); }
+  .section-header.epic { background: linear-gradient(135deg, #1a237e, #4fc3f7); }
+  .section-header.legend { background: linear-gradient(135deg, #b24592, #f15f79); }
+  .section-header.normal { background: linear-gradient(135deg, #1b5e20, #69f0ae); }
+  .section-body { padding: 8px 0; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 10px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  td {
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    font-size: 13px;
+  }
+  td input {
+    width: 80px;
+    text-align: center;
+    font-size: 13px;
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    padding: 5px 6px;
+    outline: none;
+    transition: all 0.15s;
+    -moz-appearance: textfield;
+  }
+  td input::-webkit-outer-spin-button,
+  td input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+  td input::placeholder { color: var(--text2); opacity: 0.6; }
+  td input:hover { border-color: var(--accent); }
+  td input:focus { border-color: var(--accent); background: #1a2a3a; }
+  td .calc-val {
+    font-weight: 600;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .row-total td {
+    font-weight: 700;
+    border-top: 2px solid var(--border);
+    background: rgba(255,255,255,0.02);
+  }
+  .row-total .calc-val {
+    color: var(--gold);
+    font-size: 14px;
+  }
+
+  /* 底部汇总 */
+  .summary-section {
+    max-width: 1300px;
+    margin: 20px auto 0;
+  }
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+  .summary-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px;
+    text-align: center;
+  }
+  .summary-card .label {
+    font-size: 11px;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+  .summary-card .value {
+    font-size: 26px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+  }
+  .summary-card .value.gold { color: var(--gold); }
+  .summary-card .value.green { color: var(--green); }
+  .summary-card .value.blue { color: var(--accent); }
+  .summary-card .value.orange { color: var(--orange); }
+
+  .profit-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+  .profit-badge.positive { background: rgba(105,240,174,0.15); color: var(--green); }
+  .profit-badge.negative { background: rgba(255,82,82,0.15); color: var(--red); }
+
+  /* 日期录入区 */
+  .date-section {
+    max-width: 1300px;
+    margin: 0 auto 20px;
+  }
+  .date-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 18px;
+  }
+  .date-bar label {
+    font-size: 13px;
+    color: var(--text2);
+    white-space: nowrap;
+  }
+  .date-bar input[type="date"] {
+    background: var(--input-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 6px 10px;
+    font-size: 13px;
+    outline: none;
+  }
+  .date-bar input[type="date"]:focus { border-color: var(--accent); }
+  .btn {
+    padding: 7px 18px;
+    border-radius: 8px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #81d4fa; }
+  .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-outline:hover { border-color: var(--accent); }
+  .btn-danger { background: var(--red); color: #fff; }
+  .btn-danger:hover { background: #ff6e6e; }
+
+  .history-hint {
+    font-size: 11px;
+    color: var(--text2);
+    margin-left: auto;
+  }
+
+  /* 历史记录 */
+  .history-section {
+    max-width: 1300px;
+    margin: 20px auto;
+  }
+  .history-section h3 {
+    font-size: 15px;
+    margin-bottom: 10px;
+    color: var(--text2);
+    font-weight: 600;
+  }
+  .history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    font-size: 12px;
+  }
+  .history-table th {
+    background: rgba(255,255,255,0.03);
+    padding: 10px;
+    font-size: 11px;
+  }
+  .history-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .history-table .profit-rate { font-weight: 700; }
+
+  @media (max-width: 900px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+  }
+
+  /* 登录页面 */
+  .login-overlay {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, #1a2740 0%, #0a1220 70%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+    overflow: hidden;
+  }
+  .login-overlay.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  /* 背景粒子动画 */
+  .login-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .particle {
+    position: absolute;
+    border-radius: 50%;
+    animation: floatUp linear infinite;
+    opacity: 0;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-10vh) scale(1.2); opacity: 0; }
+  }
+  @keyframes pulse-ring {
+    0% { box-shadow: 0 0 0 0 rgba(79,195,247,0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(79,195,247,0); }
+    100% { box-shadow: 0 0 0 0 rgba(79,195,247,0); }
+  }
+  @keyframes loginFadeIn {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes loginShake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+  }
+  .login-box {
+    background: rgba(26,39,54,0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(79,195,247,0.2);
+    border-radius: 20px;
+    padding: 48px 40px 40px;
+    text-align: center;
+    width: 400px;
+    max-width: 92vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4), 0 0 80px rgba(79,195,247,0.08);
+    animation: loginFadeIn 0.6s ease-out;
+    position: relative;
+    z-index: 1;
+  }
+  .login-box.error { animation: loginShake 0.5s ease; }
+  .login-box .sys-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 16px;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(79,195,247,0.3);
+    animation: pulse-ring 2.5s ease-in-out infinite;
+  }
+  .login-box .sys-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: white;
+  }
+  .login-box h2 {
+    font-size: 24px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--text), #b0c4de);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+  .login-box .login-sub {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 32px;
+    letter-spacing: 0.5px;
+  }
+  .login-box .input-group {
+    position: relative;
+    margin-bottom: 24px;
+  }
+  .login-box .input-group input {
+    width: 100%;
+    padding: 14px 48px 14px 18px;
+    background: rgba(20,30,43,0.7);
+    border: 2px solid rgba(79,195,247,0.15);
+    border-radius: 12px;
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+    letter-spacing: 3px;
+  }
+  .login-box .input-group input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 20px rgba(79,195,247,0.15);
+    background: rgba(20,30,43,0.9);
+  }
+  .login-box .input-group input::placeholder {
+    letter-spacing: 1px;
+    color: rgba(136,153,170,0.4);
+  }
+  .login-box .input-group .toggle-pw {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text2);
+    cursor: pointer;
+    font-size: 20px;
+    padding: 4px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+  .login-box .input-group .toggle-pw:hover { opacity: 1; }
+  .login-box .login-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), #29b6f6);
+    color: #0a1220;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+  .login-box .login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(79,195,247,0.35);
+  }
+  .login-box .login-btn:active { transform: translateY(0); }
+  .login-box .login-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,255,255,0.15), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.5s;
+  }
+  .login-box .login-btn:hover::after { transform: translateX(100%); }
+  .login-box .login-err {
+    color: var(--red);
+    font-size: 13px;
+    margin-top: 14px;
+    min-height: 20px;
+    transition: all 0.3s;
+  }
+
+  /* 主内容进入动画 */
+  .main-content {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease 0.2s, transform 0.8s ease 0.2s;
+  }
+  .main-content.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .main-content.blur { filter: blur(8px); pointer-events: none; opacity: 0; transform: translateY(20px); }
+</style>
+</head>
+<body>
+
+<!-- 登录遮罩 -->
+<div class="login-overlay" id="loginOverlay">
+  <canvas class="login-particles" id="particleCanvas"></canvas>
+  <div class="login-box" id="loginBox">
+    <div class="sys-icon"><img src="jq-logo.png" alt="JQ潮玩"></div>
+    <h2>集趣赏利润管理系统</h2>
+    <div class="login-sub">李忠伟 · 专属利润计算器</div>
+    <div class="input-group">
+      <input type="password" id="loginPwd" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="toggle-pw" onclick="togglePwd()" id="toggleBtn">👁️</button>
+    </div>
+    <button class="login-btn" onclick="doLogin()">登 录 系 统</button>
+    <div class="login-err" id="loginErr"></div>
+  </div>
+</div>
+
+<!-- 主内容 -->
+<div class="main-content" id="mainContent">
+<div class="header">
+  <h1 contenteditable="true" id="mainTitle" oninput="saveTitle()" data-placeholder="请输入项目名称…"></h1>
+  <div class="sub" id="mainSubtitle">李忠伟专属利润计算器</div>
+</div>
+
+<!-- 全局参数 -->
+<div class="global-params">
+  <div class="param-card">
+    <label>10W发总份数</label>
+    <input type="number" id="globalTotalCount" value="100000" onchange="recalcAll()">
+  </div>
+  <div class="param-card">
+    <label>单次价格（元）</label>
+    <input type="number" id="globalUnitPrice" value="10" onchange="recalcAll()">
+  </div>
+  <div class="param-card">
+    <label>总收入（元）</label>
+    <div class="val" id="globalTotalRevenue">¥1,000,000</div>
+  </div>
+</div>
+
+<!-- 日期录入 -->
+<div class="date-section">
+  <div class="date-bar">
+    <label>📅 数据日期：</label>
+    <input type="date" id="dataDate">
+    <button class="btn btn-primary" onclick="saveDailyRecord()">💾 保存今日数据</button>
+    <button class="btn btn-outline" onclick="resetForm()">🔄 重置表单</button>
+    <button class="btn btn-outline" onclick="exportCSV()">📥 导出CSV</button>
+    <span class="history-hint" id="recordCount">已保存 0 条记录</span>
+  </div>
+</div>
+
+<!-- 主体：四列数据 -->
+<div class="main-grid">
+  <!-- 左1：神话品质 -->
+  <div class="section">
+    <div class="section-header myth">🔮 神话品质</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>价格</th><th>占比数</th><th>10W发价格</th></tr></thead>
+        <tbody id="mythBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">神话总占比：<span class="calc-val" id="mythTotalCount">0</span></td><td><span class="calc-val" id="mythTotalPrice">¥0</span></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 左2：史诗品质 -->
+  <div class="section">
+    <div class="section-header epic">✨ 史诗品质</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>价格</th><th>占比数</th><th>10W发价格</th></tr></thead>
+        <tbody id="epicBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">史诗总占比：<span class="calc-val" id="epicTotalCount">0</span></td><td><span class="calc-val" id="epicTotalPrice">¥0</span></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 右1：传说品质 -->
+  <div class="section">
+    <div class="section-header legend">👑 传说品质</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>价格</th><th>占比数</th><th>10W发价格</th></tr></thead>
+        <tbody id="legendBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">传说总占比：<span class="calc-val" id="legendTotalCount">0</span></td><td><span class="calc-val" id="legendTotalPrice">¥0</span></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <!-- 右2：普通款 -->
+  <div class="section">
+    <div class="section-header normal">🎯 普通款</div>
+    <div class="section-body">
+      <table>
+        <thead><tr><th>价格</th><th>占比数</th><th>10W发价格</th></tr></thead>
+        <tbody id="normalBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">普通款总占比：<span class="calc-val" id="normalTotalCount">0</span></td><td><span class="calc-val" id="normalTotalPrice">¥0</span></td></tr></tfoot>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- 汇总卡片 -->
+<div class="summary-section">
+  <div class="summary-grid">
+    <div class="summary-card">
+      <div class="label">10W发合计金额</div>
+      <div class="value gold" id="summaryTotalAmount">¥0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总收入</div>
+      <div class="value blue" id="summaryRevenue">¥1,000,000</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">总占比（神话+史诗+传说+普通）</div>
+      <div class="value orange" id="summaryTotalRatio">0</div>
+    </div>
+    <div class="summary-card">
+      <div class="label">利润率</div>
+      <div class="value green" id="summaryProfitRate">0.00%</div>
+      <div id="profitBadge"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 历史记录 -->
+<div class="history-section">
+  <h3>📋 历史记录</h3>
+  <div style="overflow-x:auto;">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>日期</th>
+          <th>神话占比</th>
+          <th>史诗占比</th>
+          <th>传说占比</th>
+          <th>普通占比</th>
+          <th>总占比</th>
+          <th>合计金额</th>
+          <th>总收入</th>
+          <th>利润率</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="10" style="color:var(--text2);padding:20px;">暂无历史记录，请录入数据后保存</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div><!-- end main-content -->
+
+<script>
+// ========== 登录验证 ==========
+const SYSTEM_PASSWORD = 'LZW2731';
+const AUTH_KEY = 'jqs_auth';
+
+// 粒子背景动画
+function initParticles() {
+  const canvas = document.getElementById('particleCanvas');
+  const ctx = canvas.getContext('2d');
+  let particles = [];
+  const maxParticles = 40;
+
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  class Particle {
+    constructor() {
+      this.reset();
+      this.y = Math.random() * canvas.height;
+    }
+    reset() {
+      this.x = Math.random() * canvas.width;
+      this.y = canvas.height + 10;
+      this.size = Math.random() * 2.5 + 1;
+      this.speedY = Math.random() * 0.6 + 0.3;
+      this.speedX = (Math.random() - 0.5) * 0.4;
+      this.opacity = Math.random() * 0.4 + 0.1;
+      this.hue = Math.random() < 0.5 ? 195 : 280;
+    }
+    update() {
+      this.y -= this.speedY;
+      this.x += this.speedX;
+      if (this.y < -10) this.reset();
+      if (this.x < 0) this.x = canvas.width;
+      if (this.x > canvas.width) this.x = 0;
+    }
+    draw() {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+      ctx.fillStyle = `hsla(${this.hue}, 60%, 65%, ${this.opacity})`;
+      ctx.fill();
+    }
+  }
+
+  for (let i = 0; i < maxParticles; i++) {
+    particles.push(new Particle());
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.update(); p.draw(); });
+    requestAnimationFrame(animate);
+  }
+  animate();
+}
+initParticles();
+
+function doLogin() {
+  const pwd = document.getElementById('loginPwd').value;
+  const err = document.getElementById('loginErr');
+  const box = document.getElementById('loginBox');
+  if (pwd === SYSTEM_PASSWORD) {
+    sessionStorage.setItem(AUTH_KEY, '1');
+    err.textContent = '';
+    box.style.transition = 'all 0.5s ease';
+    box.style.transform = 'scale(1.05)';
+    box.style.boxShadow = '0 0 60px rgba(105,240,174,0.5)';
+    setTimeout(() => {
+      document.getElementById('loginOverlay').classList.add('hidden');
+      document.getElementById('mainContent').classList.remove('blur');
+      document.getElementById('mainContent').classList.add('visible');
+      init();
+    }, 350);
+  } else {
+    err.textContent = '⚠ 密码错误，请重试';
+    document.getElementById('loginPwd').value = '';
+    document.getElementById('loginPwd').focus();
+    box.classList.add('error');
+    setTimeout(() => box.classList.remove('error'), 500);
+  }
+}
+
+function togglePwd() {
+  const inp = document.getElementById('loginPwd');
+  const btn = document.getElementById('toggleBtn');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    btn.textContent = '🙈';
+  } else {
+    inp.type = 'password';
+    btn.textContent = '👁️';
+  }
+}
+
+(function checkAuth() {
+  if (sessionStorage.getItem(AUTH_KEY) === '1') {
+    document.getElementById('loginOverlay').classList.add('hidden');
+    document.getElementById('mainContent').classList.remove('blur');
+    document.getElementById('mainContent').classList.add('visible');
+  } else {
+    document.getElementById('mainContent').classList.add('blur');
+  }
+})();
+
+// ========== 原始模板数据 ==========
+function makeData(rows) {
+  return Array.from({length: rows}, () => ({price: null, count: null}));
+}
+const MYTH_DATA = makeData(15);
+const EPIC_DATA = makeData(15);
+const LEGEND_DATA = makeData(15);
+const NORMAL_DATA = makeData(15);
+
+// ========== 标题可编辑 ==========
+function saveTitle() {
+  const text = document.getElementById('mainTitle').innerText.trim();
+  localStorage.setItem('panel_title', text || '');
+}
+function loadTitle() {
+  const el = document.getElementById('mainTitle');
+  const title = localStorage.getItem('panel_title');
+  if (title && title !== '请输入项目名称…' && title !== '🎵 项目名称 · 10W发利润计算面板' && title !== '10初音 · 10W发利润计算面板') {
+    el.innerText = title;
+  } else {
+    localStorage.removeItem('panel_title');
+  }
+}
+
+// ========== 初始化 ==========
+function init() {
+  loadTitle();
+  document.getElementById('dataDate').value = new Date().toISOString().split('T')[0];
+  renderSection('mythBody', MYTH_DATA, 'myth');
+  renderSection('epicBody', EPIC_DATA, 'epic');
+  renderSection('legendBody', LEGEND_DATA, 'legend');
+  renderSection('normalBody', NORMAL_DATA, 'normal');
+  loadHistory();
+  recalcAll();
+}
+
+function renderSection(tbodyId, data, section) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = data.map((item, i) => {
+    const priceVal = item.price != null ? item.price : '';
+    const countVal = item.count != null ? item.count : '';
+    const priceInput = `<input type="number" value="${priceVal}" placeholder="价格" onchange="recalcAll()" data-section="${section}" data-row="${i}" data-field="price">`;
+    const countInput = `<input type="number" value="${countVal}" placeholder="占比" onchange="recalcAll()" data-section="${section}" data-row="${i}" data-field="count">`;
+    const calcId = `${section}_calc_${i}`;
+    const calcVal = (priceVal !== '' && countVal !== '') ? (Number(priceVal) * Number(countVal)).toLocaleString() : '0';
+    const rowClass = (priceVal === '' && countVal === '') ? 'empty-row' : '';
+    return `<tr class="${rowClass}">
+      <td>${priceInput}</td>
+      <td>${countInput}</td>
+      <td><span class="calc-val" id="${calcId}">¥${calcVal}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ========== 读取表单数据 ==========
+function readSectionData(section) {
+  const inputs = document.querySelectorAll(`input[data-section="${section}"]`);
+  const rows = {};
+  inputs.forEach(inp => {
+    const row = parseInt(inp.dataset.row);
+    const field = inp.dataset.field;
+    if (!rows[row]) rows[row] = {};
+    rows[row][field] = inp.value !== '' ? Number(inp.value) : null;
+  });
+  return Object.values(rows);
+}
+
+// ========== 核心计算 ==========
+function recalcAll() {
+  const totalCount = Number(document.getElementById('globalTotalCount').value) || 100000;
+  const unitPrice = Number(document.getElementById('globalUnitPrice').value) || 10;
+  const totalRevenue = totalCount * unitPrice;
+
+  document.getElementById('globalTotalRevenue').textContent = '¥' + totalRevenue.toLocaleString();
+
+  const sections = ['myth', 'epic', 'legend', 'normal'];
+  const totals = {};
+
+  sections.forEach(sec => {
+    const data = readSectionData(sec);
+    let totalCount = 0, totalPrice = 0;
+    data.forEach((row, i) => {
+      const price = row.price;
+      const count = row.count;
+      const calcVal = (price != null && count != null) ? price * count : 0;
+      document.getElementById(`${sec}_calc_${i}`).textContent = '¥' + calcVal.toLocaleString();
+      totalPrice += calcVal;
+      if (count != null) totalCount += count;
+    });
+    totals[sec] = { count: totalCount, price: totalPrice };
+  });
+
+  // 更新各部分总计
+  document.getElementById('mythTotalCount').textContent = totals.myth.count;
+  document.getElementById('mythTotalPrice').textContent = '¥' + totals.myth.price.toLocaleString();
+  document.getElementById('epicTotalCount').textContent = totals.epic.count;
+  document.getElementById('epicTotalPrice').textContent = '¥' + totals.epic.price.toLocaleString();
+  document.getElementById('legendTotalCount').textContent = totals.legend.count;
+  document.getElementById('legendTotalPrice').textContent = '¥' + totals.legend.price.toLocaleString();
+  document.getElementById('normalTotalCount').textContent = totals.normal.count;
+  document.getElementById('normalTotalPrice').textContent = '¥' + totals.normal.price.toLocaleString();
+
+  // 合计金额
+  const totalAmount = totals.myth.price + totals.epic.price + totals.legend.price + totals.normal.price;
+  const totalRatio = totals.myth.count + totals.epic.count + totals.legend.count + totals.normal.count;
+  const profitRate = totalRevenue > 0 ? (1 - totalAmount / totalRevenue) * 100 : 0;
+
+  // 更新汇总卡片
+  document.getElementById('summaryTotalAmount').textContent = '¥' + totalAmount.toLocaleString();
+  document.getElementById('summaryRevenue').textContent = '¥' + totalRevenue.toLocaleString();
+  document.getElementById('summaryTotalRatio').textContent = totalRatio.toLocaleString();
+  document.getElementById('summaryProfitRate').textContent = profitRate.toFixed(2) + '%';
+
+  const badge = document.getElementById('profitBadge');
+  if (profitRate > 0) {
+    badge.innerHTML = '<span class="profit-badge positive">盈利 ✅</span>';
+  } else if (profitRate < 0) {
+    badge.innerHTML = '<span class="profit-badge negative">亏损 ❌</span>';
+  } else {
+    badge.innerHTML = '<span class="profit-badge" style="background:rgba(255,255,255,0.05);color:var(--text2);">持平</span>';
+  }
+
+  // 总占比校验颜色
+  const ratioEl = document.getElementById('summaryTotalRatio');
+  ratioEl.style.color = totalRatio === totalCount ? 'var(--green)' : 'var(--red)';
+}
+
+// ========== 数据持久化 ==========
+const STORAGE_KEY = 'hatsune_profit_records';
+
+function saveDailyRecord() {
+  const date = document.getElementById('dataDate').value;
+  if (!date) { alert('请选择日期'); return; }
+
+  const sections = ['myth', 'epic', 'legend', 'normal'];
+  const record = {
+    date,
+    totalCount: Number(document.getElementById('globalTotalCount').value) || 100000,
+    unitPrice: Number(document.getElementById('globalUnitPrice').value) || 10,
+    data: {}
+  };
+
+  sections.forEach(sec => {
+    record.data[sec] = readSectionData(sec);
+  });
+
+  // 计算汇总
+  let totalAmount = 0, totalRatio = 0;
+  sections.forEach(sec => {
+    record.data[sec].forEach(row => {
+      if (row.price != null && row.count != null) totalAmount += row.price * row.count;
+      if (row.count != null) totalRatio += row.count;
+    });
+  });
+  const totalRevenue = record.totalCount * record.unitPrice;
+  record.summary = {
+    totalAmount,
+    totalRevenue,
+    totalRatio,
+    profitRate: totalRevenue > 0 ? ((1 - totalAmount / totalRevenue) * 100).toFixed(2) : 0
+  };
+
+  let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const existIdx = records.findIndex(r => r.date === date);
+  if (existIdx >= 0) {
+    if (!confirm(`日期 ${date} 已有记录，是否覆盖？`)) return;
+    records[existIdx] = record;
+  } else {
+    records.push(record);
+  }
+  records.sort((a, b) => b.date.localeCompare(a.date));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  loadHistory();
+  alert(`✅ ${date} 数据已保存！`);
+}
+
+function loadHistory() {
+  const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  document.getElementById('recordCount').textContent = `已保存 ${records.length} 条记录`;
+  const tbody = document.getElementById('historyBody');
+
+  if (records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="10" style="color:var(--text2);padding:20px;">暂无历史记录，请录入数据后保存</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = records.map((r, idx) => {
+    const pr = parseFloat(r.summary.profitRate);
+    const prColor = pr > 0 ? 'var(--green)' : pr < 0 ? 'var(--red)' : 'var(--text2)';
+    const prDisplay = pr >= 0 ? `+${pr.toFixed(2)}%` : `${pr.toFixed(2)}%`;
+
+    const mythCount = r.data.myth.reduce((s, row) => s + (row.count || 0), 0);
+    const epicCount = r.data.epic.reduce((s, row) => s + (row.count || 0), 0);
+    const legendCount = r.data.legend.reduce((s, row) => s + (row.count || 0), 0);
+    const normalCount = r.data.normal.reduce((s, row) => s + (row.count || 0), 0);
+
+    return `<tr>
+      <td><strong>${r.date}</strong></td>
+      <td>${mythCount}</td>
+      <td>${epicCount}</td>
+      <td>${legendCount}</td>
+      <td>${normalCount}</td>
+      <td>${r.summary.totalRatio}</td>
+      <td>¥${r.summary.totalAmount.toLocaleString()}</td>
+      <td>¥${r.summary.totalRevenue.toLocaleString()}</td>
+      <td class="profit-rate" style="color:${prColor}">${prDisplay}</td>
+      <td>
+        <button class="btn btn-outline" style="padding:3px 8px;font-size:11px;" onclick="loadRecord('${r.date}')">加载</button>
+        <button class="btn btn-danger" style="padding:3px 8px;font-size:11px;" onclick="deleteRecord('${r.date}')">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function loadRecord(date) {
+  const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  const record = records.find(r => r.date === date);
+  if (!record) return;
+
+  document.getElementById('dataDate').value = record.date;
+  document.getElementById('globalTotalCount').value = record.totalCount;
+  document.getElementById('globalUnitPrice').value = record.unitPrice;
+
+  ['myth', 'epic', 'legend', 'normal'].forEach(sec => {
+    const data = record.data[sec];
+    data.forEach((row, i) => {
+      const priceInput = document.querySelector(`input[data-section="${sec}"][data-row="${i}"][data-field="price"]`);
+      const countInput = document.querySelector(`input[data-section="${sec}"][data-row="${i}"][data-field="count"]`);
+      if (priceInput) priceInput.value = row.price != null ? row.price : '';
+      if (countInput) countInput.value = row.count != null ? row.count : '';
+    });
+  });
+
+  recalcAll();
+}
+
+function deleteRecord(date) {
+  if (!confirm(`确认删除 ${date} 的记录？`)) return;
+  let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  records = records.filter(r => r.date !== date);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  loadHistory();
+}
+
+function resetForm() {
+  if (!confirm('确认重置所有表单数据？此操作不会删除已保存的记录。')) return;
+  document.getElementById('dataDate').value = new Date().toISOString().split('T')[0];
+  document.getElementById('globalTotalCount').value = 100000;
+  document.getElementById('globalUnitPrice').value = 10;
+  init();
+}
+
+function exportCSV() {
+  const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  if (records.length === 0) { alert('暂无数据可导出'); return; }
+
+  let csv = '日期,神话占比,史诗占比,传说占比,普通占比,总占比,合计金额,总收入,利润率\n';
+  records.forEach(r => {
+    const mythCount = r.data.myth.reduce((s, row) => s + (row.count || 0), 0);
+    const epicCount = r.data.epic.reduce((s, row) => s + (row.count || 0), 0);
+    const legendCount = r.data.legend.reduce((s, row) => s + (row.count || 0), 0);
+    const normalCount = r.data.normal.reduce((s, row) => s + (row.count || 0), 0);
+    csv += `${r.date},${mythCount},${epicCount},${legendCount},${normalCount},${r.summary.totalRatio},${r.summary.totalAmount},${r.summary.totalRevenue},${r.summary.profitRate}%\n`;
+  });
+
+  const blob = new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `10初音_利润数据_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// 启动
+if (sessionStorage.getItem(AUTH_KEY) === '1') {
+  init();
+}
+</script>
+
+</body>
+</html>
