@@ -737,7 +737,7 @@
   <div class="date-bar">
     <label>📅 数据日期：</label>
     <input type="date" id="dataDate">
-    <button class="btn btn-primary" onclick="saveDailyRecord()">💾 保存今日数据</button>
+    <button class="btn btn-primary" onclick="saveDailyRecord()">💾 保存数据</button>
     <button class="btn btn-outline" onclick="resetForm()">🔄 重置表单</button>
     <button class="btn btn-outline" onclick="exportCSV()">📥 导出CSV</button>
     <button class="btn btn-outline" onclick="exportDataJson()">📦 导出JSON</button>
@@ -1245,60 +1245,72 @@ function saveDailyRecord() {
   const date = document.getElementById('dataDate').value;
   if (!date) { alert('请选择日期'); return; }
 
-  const sections = ['myth', 'epic', 'legend', 'normal'];
-  const projectName = document.getElementById('mainTitle').textContent.trim() || '未命名';
-  const record = {
-    date,
-    projectName,
-    totalCount: Number(document.getElementById('globalTotalCount').value) || 100000,
-    unitPrice: Number(document.getElementById('globalUnitPrice').value) || 10,
-    data: {}
-  };
+  try {
+    const sections = ['myth', 'epic', 'legend', 'normal'];
+    const projectName = document.getElementById('mainTitle').textContent.trim() || '未命名';
+    const record = {
+      date,
+      projectName,
+      totalCount: Number(document.getElementById('globalTotalCount').value) || 100000,
+      unitPrice: Number(document.getElementById('globalUnitPrice').value) || 10,
+      data: {}
+    };
 
-  sections.forEach(sec => {
-    record.data[sec] = readSectionData(sec);
-  });
-
-  // 计算汇总
-  let totalAmount = 0, totalRatio = 0;
-  sections.forEach(sec => {
-    record.data[sec].forEach(row => {
-      if (row.price != null && row.count != null) totalAmount += row.price * row.count;
-      if (row.count != null) totalRatio += row.count;
+    sections.forEach(sec => {
+      record.data[sec] = readSectionData(sec);
     });
-  });
-  const totalRevenue = record.totalCount * record.unitPrice;
-  record.summary = {
-    totalAmount,
-    totalRevenue,
-    totalRatio,
-    profitRate: totalRevenue > 0 ? ((1 - totalAmount / totalRevenue) * 100).toFixed(2) : 0
-  };
 
-  // 每条记录独立保存（同一天可存多条）
-  record.id = Date.now(); // 唯一 ID
-  record.saveTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }); // 保存时间
-  let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  records.push(record);
-  // 按日期降序，同日期按保存时间升序
-  records.sort((a, b) => b.date.localeCompare(a.date) || (a.id || 0) - (b.id || 0));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  loadHistory();
-  saveFormState();
-  
-  // 🔥 自动写入/下载 data.json 文件
-  if (fileHandle) {
-    writeToFile(records).then(success => {
-      if (!success) {
-        alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 文件写入失败，请重新关联 data.json 文件`);
-      } else {
-        alert(`✅ ${date} 数据已保存到 data.json！`);
+    // 计算汇总
+    let totalAmount = 0, totalRatio = 0;
+    sections.forEach(sec => {
+      record.data[sec].forEach(row => {
+        if (row.price != null && row.count != null) totalAmount += row.price * row.count;
+        if (row.count != null) totalRatio += row.count;
+      });
+    });
+    const totalRevenue = record.totalCount * record.unitPrice;
+    record.summary = {
+      totalAmount,
+      totalRevenue,
+      totalRatio,
+      profitRate: totalRevenue > 0 ? ((1 - totalAmount / totalRevenue) * 100).toFixed(2) : 0
+    };
+
+    // 每条记录独立保存（同一天可存多条）
+    record.id = Date.now(); // 唯一 ID
+    record.saveTime = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }); // 保存时间
+    let records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    records.push(record);
+    // 按日期降序，同日期按保存时间升序
+    records.sort((a, b) => b.date.localeCompare(a.date) || (a.id || 0) - (b.id || 0));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    loadHistory();
+    saveFormState();
+    
+    // 🔥 自动写入/下载 data.json 文件
+    if (fileHandle) {
+      writeToFile(records).then(success => {
+        if (!success) {
+          alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 文件写入失败，请用 Chrome/Edge 打开并关联 data.json`);
+        } else {
+          alert(`✅ ${date} 数据已保存到 data.json！`);
+        }
+      }).catch(err => {
+        console.error('文件写入异常:', err);
+        alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 写入文件失败: ${err.message}`);
+      });
+    } else {
+      // 未关联文件 → 自动下载 data.json，用户放到同目录即可
+      try {
+        downloadDataJson(records);
+        alert(`✅ ${date} 数据已保存！\n📥 data.json 已自动下载，请将其放在此 index.html 同目录下。`);
+      } catch(e) {
+        alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 自动下载失败，请检查浏览器下载设置。`);
       }
-    });
-  } else {
-    // 未关联文件 → 自动下载 data.json，用户放到同目录即可
-    downloadDataJson(records);
-    alert(`✅ ${date} 数据已保存！\n📥 data.json 已自动下载，请将其放在此 index.html 同目录下，下次打开即可自动读取。`);
+    }
+  } catch(e) {
+    console.error('保存失败:', e);
+    alert(`❌ 保存失败: ${e.message}\n请检查浏览器控制台了解详情。`);
   }
 }
 
@@ -1385,7 +1397,6 @@ let currentPage = 1;
 
 function loadHistory() {
   const records = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-  document.getElementById('recordCount').textContent = `已保存 ${records.length} 条记录`;
   const tbody = document.getElementById('historyBody');
   const pagDiv = document.getElementById('pagination');
 
@@ -1555,8 +1566,9 @@ document.addEventListener('keydown', function(e) {
   const isTableInput = sec && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
   
   // Ctrl+S：快速保存
-  if (e.ctrlKey && e.key === 's') {
+  if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
     e.preventDefault();
+    e.stopPropagation();
     saveDailyRecord();
     return;
   }
