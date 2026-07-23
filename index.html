@@ -753,33 +753,20 @@
 
 <!-- 主体：四列数据 -->
 <div class="main-grid">
-  <!-- 左1：普通款 -->
+  <!-- 左1：神话品质 -->
   <div class="section">
-    <div class="section-header normal" onclick="toggleSection('normal')">🎯 普通款 <span class="toggle-icon">▼</span></div>
-    <div class="section-body" id="normalBodyWrap">
+    <div class="section-header myth" onclick="toggleSection('myth')">🔮 神话品质 <span class="toggle-icon">▼</span></div>
+    <div class="section-body" id="mythBodyWrap">
       <table>
         <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
-        <tbody id="normalBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">普通款总占比：<span class="calc-val" id="normalTotalCount">0</span></td><td><span class="calc-val" id="normalTotalPrice">¥0</span></td></tr></tfoot>
+        <tbody id="mythBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">神话总占比：<span class="calc-val" id="mythTotalCount">0</span></td><td><span class="calc-val" id="mythTotalPrice">¥0</span></td></tr></tfoot>
       </table>
-      <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('normal')">＋ 再加一行</button></div>
+      <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('myth')">＋ 再加一行</button></div>
     </div>
   </div>
 
-  <!-- 左2：史诗品质 -->
-  <div class="section">
-    <div class="section-header epic" onclick="toggleSection('epic')">✨ 史诗品质 <span class="toggle-icon">▼</span></div>
-    <div class="section-body" id="epicBodyWrap">
-      <table>
-        <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
-        <tbody id="epicBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">史诗总占比：<span class="calc-val" id="epicTotalCount">0</span></td><td><span class="calc-val" id="epicTotalPrice">¥0</span></td></tr></tfoot>
-      </table>
-      <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('epic')">＋ 再加一行</button></div>
-    </div>
-  </div>
-
-  <!-- 右1：传说品质 -->
+  <!-- 左2：传说品质 -->
   <div class="section">
     <div class="section-header legend" onclick="toggleSection('legend')">👑 传说品质 <span class="toggle-icon">▼</span></div>
     <div class="section-body" id="legendBodyWrap">
@@ -792,16 +779,29 @@
     </div>
   </div>
 
-  <!-- 右2：神话品质 -->
+  <!-- 右1：史诗品质 -->
   <div class="section">
-    <div class="section-header myth" onclick="toggleSection('myth')">🔮 神话品质 <span class="toggle-icon">▼</span></div>
-    <div class="section-body" id="mythBodyWrap">
+    <div class="section-header epic" onclick="toggleSection('epic')">✨ 史诗品质 <span class="toggle-icon">▼</span></div>
+    <div class="section-body" id="epicBodyWrap">
       <table>
         <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
-        <tbody id="mythBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">神话总占比：<span class="calc-val" id="mythTotalCount">0</span></td><td><span class="calc-val" id="mythTotalPrice">¥0</span></td></tr></tfoot>
+        <tbody id="epicBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">史诗总占比：<span class="calc-val" id="epicTotalCount">0</span></td><td><span class="calc-val" id="epicTotalPrice">¥0</span></td></tr></tfoot>
       </table>
-      <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('myth')">＋ 再加一行</button></div>
+      <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('epic')">＋ 再加一行</button></div>
+    </div>
+  </div>
+
+  <!-- 右2：普通款 -->
+  <div class="section">
+    <div class="section-header normal" onclick="toggleSection('normal')">🎯 普通款 <span class="toggle-icon">▼</span></div>
+    <div class="section-body" id="normalBodyWrap">
+      <table>
+        <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
+        <tbody id="normalBody"></tbody>
+        <tfoot><tr class="row-total"><td colspan="2">普通款总占比：<span class="calc-val" id="normalTotalCount">0</span></td><td><span class="calc-val" id="normalTotalPrice">¥0</span></td></tr></tfoot>
+      </table>
+      <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('normal')">＋ 再加一行</button></div>
     </div>
   </div>
 </div>
