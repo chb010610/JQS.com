@@ -497,6 +497,48 @@
   }
   .history-table .profit-rate { font-weight: 700; }
 
+  /* 光标拖尾粒子 */
+  .trail-particle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 50%;
+    animation: trailFade 0.6s ease-out forwards;
+  }
+  @keyframes trailFade {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(0); opacity: 0; }
+  }
+  
+  /* 点击特效 */
+  .click-ripple {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    border: 2px solid rgba(255,215,0,0.8);
+    border-radius: 50%;
+    animation: rippleOut 0.6s ease-out forwards;
+  }
+  @keyframes rippleOut {
+    0% { width: 0; height: 0; opacity: 1; transform: translate(-50%, -50%); }
+    100% { width: 120px; height: 120px; opacity: 0; transform: translate(-50%, -50%); }
+  }
+  
+  .click-spark {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9998;
+    width: 6px; height: 6px;
+    background: #ffd700;
+    border-radius: 50%;
+    animation: sparkFly 0.5s ease-out forwards;
+  }
+  @keyframes sparkFly {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
+  }
+
+
   @media (max-width: 900px) {
     .main-grid { grid-template-columns: 1fr; }
     .summary-grid { grid-template-columns: 1fr 1fr; }
@@ -881,13 +923,17 @@
 </div><!-- end bottom-row -->
 </div><!-- end main-content -->
 
+<!-- 🔥 数据嵌入式存储，直接保存在 HTML 中 -->
+<script id="embeddedData" type="application/json">[]</script>
+
 <script>
 // ========== 登录验证 ==========
 const SYSTEM_PASSWORD = 'LZW2731';
 const AUTH_KEY = 'jqs_auth';
 
 // ========== 文件系统持久化（File System Access API） ==========
-let fileHandle = null; // 持久化的文件句柄
+let fileHandle = null; // data.json 文件句柄（兼容旧版）
+let htmlFileHandle = null; // index.html 文件句柄（数据嵌入 HTML）
 const FILE_DB_NAME = 'jqs_file_db';
 const FILE_STORE_NAME = 'handles';
 
@@ -929,6 +975,75 @@ async function loadFileHandle() {
     });
   } catch(e) {
     return null;
+  }
+}
+
+// 🔥 HTML文件句柄管理（数据嵌入HTML模式）
+async function saveHtmlFileHandle(handle) {
+  const db = await openFileDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(FILE_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(FILE_STORE_NAME);
+    store.put(handle, 'htmlHandle');
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = (e) => { db.close(); reject(e.target.error); };
+  });
+}
+
+async function loadHtmlFileHandle() {
+  try {
+    const db = await openFileDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(FILE_STORE_NAME, 'readonly');
+      const store = tx.objectStore(FILE_STORE_NAME);
+      const req = store.get('htmlHandle');
+      req.onsuccess = () => { db.close(); resolve(req.result || null); };
+      req.onerror = (e) => { db.close(); reject(e.target.error); };
+    });
+  } catch(e) {
+    return null;
+  }
+}
+
+// 选择 index.html 文件以获得写入权限
+async function pickHtmlFile() {
+  if (!('showSaveFilePicker' in window)) {
+    alert('您的浏览器不支持，请使用 Chrome/Edge 浏览器。');
+    return false;
+  }
+  try {
+    const handle = await window.showSaveFilePicker({
+      suggestedName: 'index.html',
+      types: [{ description: 'HTML 文件', accept: { 'text/html': ['.html'] } }],
+      startIn: 'desktop'
+    });
+    htmlFileHandle = handle;
+    await saveHtmlFileHandle(handle);
+    return true;
+  } catch(e) {
+    return false;
+  }
+}
+
+// 将完整 HTML（含嵌入式数据）写入文件
+async function writeHtmlToFile() {
+  if (!htmlFileHandle) return false;
+  try {
+    const opts = { mode: 'readwrite' };
+    if ((await htmlFileHandle.queryPermission(opts)) !== 'granted') {
+      if ((await htmlFileHandle.requestPermission(opts)) !== 'granted') {
+        throw new Error('权限被拒绝');
+      }
+    }
+    const writable = await htmlFileHandle.createWritable();
+    const htmlStr = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+    await writable.write(htmlStr);
+    await writable.close();
+    return true;
+  } catch(e) {
+    console.error('写入HTML文件失败:', e);
+    htmlFileHandle = null;
+    return false;
   }
 }
 
@@ -1241,7 +1356,7 @@ function recalcAll() {
 // ========== 数据持久化 ==========
 const STORAGE_KEY = 'hatsune_profit_records';
 
-function saveDailyRecord() {
+async function saveDailyRecord() {
   const date = document.getElementById('dataDate').value;
   if (!date) { alert('请选择日期'); return; }
 
@@ -1287,25 +1402,38 @@ function saveDailyRecord() {
     loadHistory();
     saveFormState();
     
-    // 🔥 自动写入/下载 data.json 文件
-    if (fileHandle) {
-      writeToFile(records).then(success => {
-        if (!success) {
-          alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 文件写入失败，请用 Chrome/Edge 打开并关联 data.json`);
-        } else {
-          alert(`✅ ${date} 数据已保存到 data.json！`);
-        }
-      }).catch(err => {
-        console.error('文件写入异常:', err);
-        alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 写入文件失败: ${err.message}`);
-      });
+    // 🔥 数据嵌入HTML模式：直接写入index.html自身
+    // 1) 更新嵌入式数据标签
+    const embeddedEl = document.getElementById('embeddedData');
+    if (embeddedEl) {
+      embeddedEl.textContent = JSON.stringify(records);
+    }
+    
+    // 2) 尝试直接写入HTML文件
+    if (htmlFileHandle) {
+      const ok = await writeHtmlToFile();
+      if (ok) {
+        alert(`✅ ${date} 数据已保存！\n李忠伟发财，钞票多多，保存完毕，可关闭幸运弹窗。`);
+      } else {
+        alert(`✅ ${date} 数据已保存！\n⚠ HTML写入失败，请重新关联 index.html。`);
+        htmlFileHandle = null;
+      }
     } else {
-      // 未关联文件 → 自动下载 data.json，用户放到同目录即可
+      // 尝试获取index.html的写入权限
       try {
-        downloadDataJson(records);
-        alert(`✅ ${date} 数据已保存！\n📥 data.json 李忠伟发财，钞票多多，保存完毕，可关闭幸运弹窗。`);
+        const picked = await pickHtmlFile();
+        if (picked) {
+          // 更新嵌入数据后写入
+          const embeddedEl2 = document.getElementById('embeddedData');
+          if (embeddedEl2) embeddedEl2.textContent = JSON.stringify(records);
+          await writeHtmlToFile();
+          alert(`✅ ${date} 数据已保存！\n李忠伟发财，钞票多多，保存完毕，可关闭幸运弹窗。`);
+        } else {
+          // 用户取消选择，只保存到浏览器缓存
+          alert(`✅ ${date} 数据已保存！\n💡 如需保存到HTML文件，请下次保存时选择 index.html。`);
+        }
       } catch(e) {
-        alert(`✅ ${date} 数据已保存到浏览器！\n⚠ 自动下载失败，请检查浏览器下载设置。`);
+        alert(`✅ ${date} 数据已保存！`);
       }
     }
   } catch(e) {
@@ -1627,29 +1755,45 @@ async function selectOrCreateDataFile() {
   return success;
 }
 
-// 启动 - 自动从同目录 data.json 加载数据
+// 启动
 (async function startup() {
   if (sessionStorage.getItem(AUTH_KEY) !== '1') return;
   
   let loadedFromFile = false;
   
-  // 🔥 第1优先：用 File System Access API 从已关联的文件读取
+  // 预加载HTML文件句柄（后续保存时直接使用）
+  htmlFileHandle = await loadHtmlFileHandle();
   fileHandle = await loadFileHandle();
-  if (fileHandle) {
-    try {
-      const opts = { mode: 'read' };
-      if ((await fileHandle.queryPermission(opts)) === 'granted') {
-        const fileData = await readFromFile();
-        if (fileData && Array.isArray(fileData) && fileData.length > 0) {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(fileData));
-          loadedFromFile = true;
-          setFileStatus('✅ 数据已从文件加载', 'var(--green)');
-        }
+  
+  // 🔥 第1优先：从HTML内嵌数据加载
+  try {
+    const embeddedEl = document.getElementById('embeddedData');
+    if (embeddedEl && embeddedEl.textContent.trim()) {
+      const embeddedData = JSON.parse(embeddedEl.textContent);
+      if (Array.isArray(embeddedData) && embeddedData.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(embeddedData));
+        loadedFromFile = true;
       }
-    } catch(e) { /* 文件句柄失效，继续尝试 fetch */ }
+    }
+  } catch(e) {}
+  
+  // 🔥 第2优先：用 File System Access API 从已关联的文件读取
+  if (!loadedFromFile) {
+    if (fileHandle) {
+      try {
+        const opts = { mode: 'read' };
+        if ((await fileHandle.queryPermission(opts)) === 'granted') {
+          const fileData = await readFromFile();
+          if (fileData && Array.isArray(fileData) && fileData.length > 0) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(fileData));
+            loadedFromFile = true;
+          }
+        }
+      } catch(e) {}
+    }
   }
   
-  // 🔥 第2优先：自动 fetch 同目录 data.json（无需任何操作！）
+  // 🔥 第3优先：fetch data.json
   if (!loadedFromFile) {
     try {
       const resp = await fetch('data.json', {cache: 'no-store'});
@@ -1658,20 +1802,73 @@ async function selectOrCreateDataFile() {
         if (Array.isArray(jsonData) && jsonData.length > 0) {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(jsonData));
           loadedFromFile = true;
-          setFileStatus('✅ 已从 data.json 自动加载', 'var(--green)');
         }
       }
-    } catch(e) { /* data.json 不存在，使用 localStorage */ }
-  }
-  
-  // 第3优先：localStorage（兜底）
-  if (!loadedFromFile) {
-    setFileStatus('⚠ 未找到 data.json，使用浏览器缓存', 'var(--orange)');
+    } catch(e) {}
   }
   
   // 恢复上次未保存的表单
   restoreFormState();
   init();
+})();
+
+// ========== 光标拖尾 + 点击特效 ==========
+(function cursorFX() {
+  const colors = ['#ffd700','#ff6b6b','#4ecdc4','#a29bfe','#fd79a8','#ffeaa7'];
+  const trailParticles = [];
+  const maxTrail = 20;
+  let lastTrailTime = 0;
+
+  // 创建拖尾粒子
+  function spawnTrail(x, y) {
+    const now = Date.now();
+    if (now - lastTrailTime < 20) return;
+    lastTrailTime = now;
+
+    const p = document.createElement('div');
+    p.className = 'trail-particle';
+    const size = 4 + Math.random() * 6;
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    p.style.cssText = `width:${size}px;height:${size}px;left:${x - size/2}px;top:${y - size/2}px;background:${color};box-shadow:0 0 ${size*2}px ${color};`;
+    document.body.appendChild(p);
+    trailParticles.push(p);
+    
+    if (trailParticles.length > maxTrail) {
+      const old = trailParticles.shift();
+      old.remove();
+    }
+    
+    // 600ms后自动移除
+    setTimeout(() => {
+      const idx = trailParticles.indexOf(p);
+      if (idx > -1) trailParticles.splice(idx, 1);
+      p.remove();
+    }, 600);
+  }
+
+  // 点击特效
+  function spawnClick(x, y) {
+    // 波纹
+    const ripple = document.createElement('div');
+    ripple.className = 'click-ripple';
+    ripple.style.cssText = `left:${x}px;top:${y}px;`;
+    document.body.appendChild(ripple);
+    setTimeout(() => ripple.remove(), 600);
+
+    // 火花
+    for (let i = 0; i < 10; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'click-spark';
+      const angle = (Math.PI * 2 * i) / 10 + Math.random() * 0.5;
+      const dist = 20 + Math.random() * 50;
+      spark.style.cssText = `left:${x}px;top:${y}px;--sx:${Math.cos(angle)*dist}px;--sy:${Math.sin(angle)*dist}px;`;
+      document.body.appendChild(spark);
+      setTimeout(() => spark.remove(), 500);
+    }
+  }
+
+  document.addEventListener('mousemove', (e) => spawnTrail(e.clientX, e.clientY));
+  document.addEventListener('click', (e) => spawnClick(e.clientX, e.clientY));
 })();
 
 // 便捷的状态更新函数（静默跳过，不影响功能）
