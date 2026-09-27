@@ -800,9 +800,9 @@
     <div class="section-header myth" onclick="toggleSection('myth')">🔮 神话品质 <span class="toggle-icon">▼</span></div>
     <div class="section-body" id="mythBodyWrap">
       <table>
-        <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
+        <thead><tr><th>价格</th><th>张数</th><th>合计</th><th>概率</th><th>件数</th></tr></thead>
         <tbody id="mythBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">神话总占比：<span class="calc-val" id="mythTotalCount">0</span></td><td><span class="calc-val" id="mythTotalPrice">¥0</span></td></tr></tfoot>
+        <tfoot><tr class="row-total"><td colspan="2">神话总张数：<span class="calc-val" id="mythTotalCount">0</span></td><td><span class="calc-val" id="mythTotalPrice">¥0</span></td><td><span class="calc-val" id="mythTotalProb" style="color:var(--purple);">—</span></td><td><span class="calc-val" id="mythTotalQty">—</span></td></tr></tfoot>
       </table>
       <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('myth')">＋ 再加一行</button></div>
     </div>
@@ -813,9 +813,9 @@
     <div class="section-header legend" onclick="toggleSection('legend')">👑 传说品质 <span class="toggle-icon">▼</span></div>
     <div class="section-body" id="legendBodyWrap">
       <table>
-        <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
+        <thead><tr><th>价格</th><th>张数</th><th>合计</th><th>概率</th><th>件数</th></tr></thead>
         <tbody id="legendBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">传说总占比：<span class="calc-val" id="legendTotalCount">0</span></td><td><span class="calc-val" id="legendTotalPrice">¥0</span></td></tr></tfoot>
+        <tfoot><tr class="row-total"><td colspan="2">传说总张数：<span class="calc-val" id="legendTotalCount">0</span></td><td><span class="calc-val" id="legendTotalPrice">¥0</span></td><td><span class="calc-val" id="legendTotalProb" style="color:var(--purple);">—</span></td><td><span class="calc-val" id="legendTotalQty">—</span></td></tr></tfoot>
       </table>
       <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('legend')">＋ 再加一行</button></div>
     </div>
@@ -826,9 +826,9 @@
     <div class="section-header epic" onclick="toggleSection('epic')">✨ 史诗品质 <span class="toggle-icon">▼</span></div>
     <div class="section-body" id="epicBodyWrap">
       <table>
-        <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
+        <thead><tr><th>价格</th><th>张数</th><th>合计</th><th>概率</th><th>件数</th></tr></thead>
         <tbody id="epicBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">史诗总占比：<span class="calc-val" id="epicTotalCount">0</span></td><td><span class="calc-val" id="epicTotalPrice">¥0</span></td></tr></tfoot>
+        <tfoot><tr class="row-total"><td colspan="2">史诗总张数：<span class="calc-val" id="epicTotalCount">0</span></td><td><span class="calc-val" id="epicTotalPrice">¥0</span></td><td><span class="calc-val" id="epicTotalProb" style="color:var(--purple);">—</span></td><td><span class="calc-val" id="epicTotalQty">—</span></td></tr></tfoot>
       </table>
       <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('epic')">＋ 再加一行</button></div>
     </div>
@@ -839,9 +839,9 @@
     <div class="section-header normal" onclick="toggleSection('normal')">🎯 普通款 <span class="toggle-icon">▼</span></div>
     <div class="section-body" id="normalBodyWrap">
       <table>
-        <thead><tr><th>价格</th><th>占比数</th><th>合计</th></tr></thead>
+        <thead><tr><th>价格</th><th>张数</th><th>合计</th><th>概率</th><th>件数</th></tr></thead>
         <tbody id="normalBody"></tbody>
-        <tfoot><tr class="row-total"><td colspan="2">普通款总占比：<span class="calc-val" id="normalTotalCount">0</span></td><td><span class="calc-val" id="normalTotalPrice">¥0</span></td></tr></tfoot>
+        <tfoot><tr class="row-total"><td colspan="2">普通款总张数：<span class="calc-val" id="normalTotalCount">0</span></td><td><span class="calc-val" id="normalTotalPrice">¥0</span></td><td><span class="calc-val" id="normalTotalProb" style="color:var(--purple);">—</span></td><td><span class="calc-val" id="normalTotalQty">—</span></td></tr></tfoot>
       </table>
       <div class="add-row-wrap"><button class="add-row-btn" onclick="addRow('normal')">＋ 再加一行</button></div>
     </div>
@@ -881,6 +881,11 @@
             <td class="pt-label">📈 利润率</td>
             <td class="pt-value" id="sRate" style="font-size:22px;font-weight:900;">0%</td>
             <td class="pt-note" id="sRateNote">—</td>
+          </tr>
+          <tr>
+            <td class="pt-label">🎰 动态总池</td>
+            <td class="pt-value" id="sPool" style="color:var(--purple);">0 张</td>
+            <td class="pt-note">全部行张数总和</td>
           </tr>
           <tr>
             <td class="pt-label">🎯 总占比</td>
@@ -1270,13 +1275,17 @@ function renderSection(section) {
     const priceVal = item.price != null ? item.price : '';
     const countVal = item.count != null ? item.count : '';
     const priceInput = `<input type="number" value="${priceVal}" placeholder="价格" onchange="recalcAll()" data-section="${section}" data-row="${i}" data-field="price">`;
-    const countInput = `<input type="number" value="${countVal}" placeholder="占比" onchange="recalcAll()" data-section="${section}" data-row="${i}" data-field="count">`;
+    const countInput = `<input type="number" value="${countVal}" placeholder="张数" onchange="recalcAll()" data-section="${section}" data-row="${i}" data-field="count">`;
     const calcId = `${section}_calc_${i}`;
+    const probId = `${section}_prob_${i}`;
+    const qtyId = `${section}_qty_${i}`;
     const calcVal = (priceVal !== '' && countVal !== '') ? (Number(priceVal) * Number(countVal)).toLocaleString() : '0';
     return `<tr>
       <td>${priceInput}</td>
       <td>${countInput}</td>
       <td><span class="calc-val" id="${calcId}">¥${calcVal}</span></td>
+      <td><span class="calc-val" id="${probId}" style="color:var(--purple);">—</span></td>
+      <td><span class="calc-val" id="${qtyId}" style="color:var(--orange);">—</span></td>
     </tr>`;
   }).join('');
 }
@@ -1304,19 +1313,21 @@ function recalcAll() {
 
   const sections = ['myth', 'epic', 'legend', 'normal'];
   const totals = {};
+  const countsBySec = {};
 
   sections.forEach(sec => {
     const data = readSectionData(sec);
-    let totalCount = 0, totalPrice = 0;
+    let secTotalCount = 0, secTotalPrice = 0;
     data.forEach((row, i) => {
       const price = row.price;
       const count = row.count;
       const calcVal = (price != null && count != null) ? price * count : 0;
       document.getElementById(`${sec}_calc_${i}`).textContent = '¥' + calcVal.toLocaleString();
-      totalPrice += calcVal;
-      if (count != null) totalCount += count;
+      secTotalPrice += calcVal;
+      if (count != null) secTotalCount += count;
     });
-    totals[sec] = { count: totalCount, price: totalPrice };
+    countsBySec[sec] = data.map(r => r.count);
+    totals[sec] = { count: secTotalCount, price: secTotalPrice };
   });
 
   // 更新各部分总计
@@ -1328,6 +1339,53 @@ function recalcAll() {
   document.getElementById('legendTotalPrice').textContent = '¥' + totals.legend.price.toLocaleString();
   document.getElementById('normalTotalCount').textContent = totals.normal.count;
   document.getElementById('normalTotalPrice').textContent = '¥' + totals.normal.price.toLocaleString();
+
+  // ===== 动态总池：全部行「张数」的总和（不固定，随输入变动） =====
+  const totalPool = totals.myth.count + totals.epic.count + totals.legend.count + totals.normal.count;
+
+  if (totalPool <= 0) {
+    // 所有行张数求和为 0，禁止计算概率
+    sections.forEach(sec => {
+      countsBySec[sec].forEach((c, i) => {
+        const probEl = document.getElementById(`${sec}_prob_${i}`);
+        const qtyEl = document.getElementById(`${sec}_qty_${i}`);
+        if (probEl) probEl.textContent = '—';
+        if (qtyEl) qtyEl.textContent = '—';
+      });
+      const qtyTotalEl = document.getElementById(sec + 'TotalQty');
+      if (qtyTotalEl) qtyTotalEl.textContent = '—';
+      const probTotalEl = document.getElementById(sec + 'TotalProb');
+      if (probTotalEl) probTotalEl.textContent = '—';
+    });
+    const sPoolEl = document.getElementById('sPool');
+    if (sPoolEl) sPoolEl.textContent = '0 张';
+  } else {
+    sections.forEach(sec => {
+      countsBySec[sec].forEach((c, i) => {
+        const probEl = document.getElementById(`${sec}_prob_${i}`);
+        const qtyEl = document.getElementById(`${sec}_qty_${i}`);
+        if (c == null) {
+          if (probEl) probEl.textContent = '—';
+          if (qtyEl) qtyEl.textContent = '—';
+          return;
+        }
+        // 本行概率 = 本行张数 ÷ 全部张数总和
+        const prob = c / totalPool * 100;
+        if (probEl) probEl.textContent = prob.toFixed(4) + '%';
+        // 件数 = 总份数 × 本行概率（比如 1 万发里出多少件）
+        if (qtyEl) qtyEl.textContent = Math.round(totalCount * prob / 100).toLocaleString();
+      });
+      // 本品质按概率折算的总件数
+      const secQty = Math.round(totalCount * (totals[sec].count / totalPool));
+      const qtyTotalEl = document.getElementById(sec + 'TotalQty');
+      if (qtyTotalEl) qtyTotalEl.textContent = secQty.toLocaleString();
+      // 本品质总张数占全局总池的概率
+      const probTotalEl = document.getElementById(sec + 'TotalProb');
+      if (probTotalEl) probTotalEl.textContent = (totals[sec].count / totalPool * 100).toFixed(2) + '%';
+    });
+    const sPoolEl = document.getElementById('sPool');
+    if (sPoolEl) sPoolEl.textContent = totalPool.toLocaleString() + ' 张';
+  }
 
   // 合计金额
   const totalAmount = totals.myth.price + totals.epic.price + totals.legend.price + totals.normal.price;
